@@ -11,7 +11,7 @@ class GeneralLedgerPage extends Page
 {
     protected static string $view = 'ledger-core::filament.pages.general-ledger';
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public ?int $entity = null;
     public ?int $account = null;

@@ -17,7 +17,7 @@ use LedgerCore\Models\LedgerEntity;
 
 class LedgerEntityResource extends Resource
 {
-    protected static ?string $navigationIcon = null;
+    protected static string|\BackedEnum|null $navigationIcon = null;
 
     public static function getModel(): string
     {

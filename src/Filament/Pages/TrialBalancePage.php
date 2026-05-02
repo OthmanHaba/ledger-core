@@ -11,7 +11,7 @@ class TrialBalancePage extends Page
 {
     protected static string $view = 'ledger-core::filament.pages.trial-balance';
 
-    protected static ?string $navigationIcon = 'heroicon-o-scale';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-scale';
 
     public ?int $entity = null;
     public ?string $from = null;

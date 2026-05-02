@@ -11,7 +11,7 @@ class AccountStatementPage extends Page
 {
     protected static string $view = 'ledger-core::filament.pages.account-statement';
 
-    protected static ?string $navigationIcon = 'heroicon-o-document-chart-bar';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-document-chart-bar';
 
     public ?int $account = null;
     public ?string $from = null;
