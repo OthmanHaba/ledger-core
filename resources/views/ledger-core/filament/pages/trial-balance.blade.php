@@ -1,20 +1,51 @@
 <x-filament-panels::page>
-    <div class="space-y-4">
-        <div class="grid gap-3 md:grid-cols-4">
-            <x-filament::input.wrapper><x-filament::input type="number" wire:model.live="entity" placeholder="Entity ID" /></x-filament::input.wrapper>
-            <x-filament::input.wrapper><x-filament::input type="date" wire:model.live="from" /></x-filament::input.wrapper>
-            <x-filament::input.wrapper><x-filament::input type="date" wire:model.live="to" /></x-filament::input.wrapper>
-            <x-filament::input.wrapper><x-filament::input wire:model.live="currency" placeholder="Currency" /></x-filament::input.wrapper>
+    <x-filament::section>
+        <x-slot name="heading">Filters</x-slot>
+        <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0.75rem;">
+            <x-filament::input.wrapper>
+                <x-filament::input type="number" wire:model.live="entity" placeholder="Entity ID" />
+            </x-filament::input.wrapper>
+            <x-filament::input.wrapper>
+                <x-filament::input type="date" wire:model.live="from" />
+            </x-filament::input.wrapper>
+            <x-filament::input.wrapper>
+                <x-filament::input type="date" wire:model.live="to" />
+            </x-filament::input.wrapper>
+            <x-filament::input.wrapper>
+                <x-filament::input wire:model.live="currency" placeholder="Currency" />
+            </x-filament::input.wrapper>
         </div>
-        <div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-800">
-            <table class="w-full text-sm">
-                <thead><tr class="bg-gray-50 text-left dark:bg-gray-900"><th class="p-3">Code</th><th class="p-3">Account</th><th class="p-3">Debit</th><th class="p-3">Credit</th><th class="p-3">Balance</th></tr></thead>
+    </x-filament::section>
+
+    <x-filament::section>
+        <x-slot name="heading">Trial balance</x-slot>
+        <div class="fi-ta-ctn">
+            <table class="fi-ta-table" style="width:100%;">
+                <thead class="fi-ta-header">
+                    <tr class="fi-ta-row">
+                        <th class="fi-ta-header-cell">Code</th>
+                        <th class="fi-ta-header-cell">Account</th>
+                        <th class="fi-ta-header-cell">Debit</th>
+                        <th class="fi-ta-header-cell">Credit</th>
+                        <th class="fi-ta-header-cell">Balance</th>
+                    </tr>
+                </thead>
                 <tbody>
-                @foreach ($this->getRows() as $row)
-                    <tr class="border-t border-gray-100 dark:border-gray-800"><td class="p-3">{{ $row['code'] }}</td><td class="p-3">{{ $row['name'] }}</td><td class="p-3">{{ $row['debit_total'] }}</td><td class="p-3">{{ $row['credit_total'] }}</td><td class="p-3">{{ $row['balance'] }}</td></tr>
-                @endforeach
+                    @forelse ($this->getRows() as $row)
+                        <tr class="fi-ta-row">
+                            <td class="fi-ta-cell">{{ $row['code'] }}</td>
+                            <td class="fi-ta-cell">{{ $row['name'] }}</td>
+                            <td class="fi-ta-cell">{{ $row['debit_total'] }}</td>
+                            <td class="fi-ta-cell">{{ $row['credit_total'] }}</td>
+                            <td class="fi-ta-cell">{{ $row['balance'] }}</td>
+                        </tr>
+                    @empty
+                        <tr class="fi-ta-row">
+                            <td class="fi-ta-cell" colspan="5">Provide an Entity ID to view the trial balance.</td>
+                        </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>
-    </div>
+    </x-filament::section>
 </x-filament-panels::page>
