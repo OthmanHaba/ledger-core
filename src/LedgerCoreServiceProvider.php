@@ -36,9 +36,9 @@ final class LedgerCoreServiceProvider extends ServiceProvider
         ], 'ledger-core-migrations');
 
         $this->publishes([
-            __DIR__ . '/../resources/views' => resource_path('views/vendor/ledger-core'),
+            __DIR__ . '/../resources/views/ledger-core' => resource_path('views/vendor/ledger-core'),
         ], 'ledger-core-views');
 
-        $this->loadViewsFrom(__DIR__ . '/../resources/views', 'ledger-core');
+        $this->loadViewsFrom(__DIR__ . '/../resources/views/ledger-core', 'ledger-core');
     }
 }
