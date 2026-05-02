@@ -984,6 +984,336 @@ $ledger->post(new JournalEntryData(
 ));
 ```
 
+### Use Case: Currency Exchange
+
+Host application concept:
+
+```text
+The application exchanges one currency for another and may recognize spread or fee income.
+```
+
+Important ledger design:
+
+- Use separate accounts per currency when possible.
+- Provide `baseAmount` and `exchangeRate` for multi-currency entries.
+- Keep exchange quote, rate source, and execution details in the host application.
+- Store only generic `referenceType`, `referenceId`, and metadata in the ledger entry.
+
+Example:
+
+```text
+A user gives 1,000 USD.
+The app gives 4,800 LYD.
+The base currency is USD.
+The 4,800 LYD output is valued at 990 USD.
+The app recognizes 10 USD exchange revenue.
+```
+
+Ledger entry:
+
+```text
+Dr USD Cash              1,000 USD base 1,000 USD
+Cr LYD Cash              4,800 LYD base   990 USD
+Cr Exchange Revenue         10 USD base    10 USD
+```
+
+Code:
+
+```php
+$ledger->post(new JournalEntryData(
+    ledgerEntityId: $entity->id,
+    idempotencyKey: 'currency-exchange:' . $exchange->uuid,
+    referenceType: 'currency_exchange',
+    referenceId: (string) $exchange->id,
+    description: 'Currency exchange executed',
+    lines: [
+        JournalLineData::debit(
+            accountId: $usdCashAccountId,
+            amount: '1000.00000000',
+            currency: 'USD',
+            baseAmount: '1000.00000000',
+            exchangeRate: '1.000000000000',
+            memo: 'USD received',
+        ),
+        JournalLineData::credit(
+            accountId: $lydCashAccountId,
+            amount: '4800.00000000',
+            currency: 'LYD',
+            baseAmount: '990.00000000',
+            exchangeRate: '0.206250000000',
+            memo: 'LYD delivered',
+        ),
+        JournalLineData::credit(
+            accountId: $exchangeRevenueAccountId,
+            amount: '10.00000000',
+            currency: 'USD',
+            baseAmount: '10.00000000',
+            exchangeRate: '1.000000000000',
+            memo: 'Exchange spread',
+        ),
+    ],
+    metadata: [
+        'rate_source' => 'host_application',
+        'quoted_rate' => '4.800000000000',
+    ],
+));
+```
+
+The ledger package does not contain an exchange model, quote engine, rate provider, or settlement workflow. Those belong in the host app.
+
+### Use Case: Order Workflow
+
+Host application concept:
+
+```text
+An order moves through authorization, payment capture, fulfillment, revenue recognition, and possible refund.
+```
+
+The host app can post one journal entry per meaningful accounting event.
+
+#### Order Payment Captured
+
+Ledger entry:
+
+```text
+Dr Cash or Payment Clearing
+Cr Customer Deposits or Deferred Revenue
+```
+
+Code:
+
+```php
+$ledger->post(new JournalEntryData(
+    ledgerEntityId: $entity->id,
+    idempotencyKey: 'order-payment-captured:' . $order->uuid,
+    referenceType: 'order',
+    referenceId: (string) $order->id,
+    description: 'Order payment captured',
+    lines: [
+        JournalLineData::debit(
+            accountId: $paymentClearingAccountId,
+            amount: $order->total_amount,
+            currency: $order->currency,
+        ),
+        JournalLineData::credit(
+            accountId: $customerDepositAccountId,
+            amount: $order->total_amount,
+            currency: $order->currency,
+        ),
+    ],
+));
+```
+
+#### Order Fulfilled And Revenue Recognized
+
+Ledger entry:
+
+```text
+Dr Customer Deposits or Deferred Revenue
+Cr Sales Revenue
+```
+
+Code:
+
+```php
+$ledger->post(new JournalEntryData(
+    ledgerEntityId: $entity->id,
+    idempotencyKey: 'order-fulfilled:' . $order->uuid,
+    referenceType: 'order',
+    referenceId: (string) $order->id,
+    description: 'Order fulfilled and revenue recognized',
+    lines: [
+        JournalLineData::debit(
+            accountId: $customerDepositAccountId,
+            amount: $order->total_amount,
+            currency: $order->currency,
+        ),
+        JournalLineData::credit(
+            accountId: $salesRevenueAccountId,
+            amount: $order->total_amount,
+            currency: $order->currency,
+        ),
+    ],
+));
+```
+
+#### Order Refund
+
+Ledger entry:
+
+```text
+Dr Refunds or Sales Returns
+Cr Cash or Payment Clearing
+```
+
+Code:
+
+```php
+$ledger->post(new JournalEntryData(
+    ledgerEntityId: $entity->id,
+    idempotencyKey: 'order-refund:' . $refund->uuid,
+    referenceType: 'order_refund',
+    referenceId: (string) $refund->id,
+    description: 'Order refund posted',
+    lines: [
+        JournalLineData::debit(
+            accountId: $salesReturnsAccountId,
+            amount: $refund->amount,
+            currency: $refund->currency,
+        ),
+        JournalLineData::credit(
+            accountId: $paymentClearingAccountId,
+            amount: $refund->amount,
+            currency: $refund->currency,
+        ),
+    ],
+));
+```
+
+This package does not decide when an order is fulfilled or whether revenue should be recognized at capture, shipment, delivery, or acceptance. The host application owns that policy.
+
+### Use Case: Marketplace Or Platform Payout
+
+Host application concept:
+
+```text
+A platform collects funds, keeps a fee, and pays out the remaining amount to another party.
+```
+
+Ledger entry when funds are collected:
+
+```text
+Dr Cash
+Cr Payable To Counterparty
+Cr Platform Fee Revenue
+```
+
+Code:
+
+```php
+$ledger->post(new JournalEntryData(
+    ledgerEntityId: $entity->id,
+    idempotencyKey: 'platform-collection:' . $collection->uuid,
+    referenceType: 'platform_collection',
+    referenceId: (string) $collection->id,
+    description: 'Platform collection with fee',
+    lines: [
+        JournalLineData::debit($cashAccountId, '1000.00000000', 'USD'),
+        JournalLineData::credit($counterpartyPayableAccountId, '950.00000000', 'USD'),
+        JournalLineData::credit($platformFeeRevenueAccountId, '50.00000000', 'USD'),
+    ],
+));
+```
+
+Ledger entry when payout is sent:
+
+```text
+Dr Payable To Counterparty
+Cr Cash
+```
+
+Code:
+
+```php
+$ledger->post(new JournalEntryData(
+    ledgerEntityId: $entity->id,
+    idempotencyKey: 'platform-payout:' . $payout->uuid,
+    referenceType: 'platform_payout',
+    referenceId: (string) $payout->id,
+    description: 'Platform payout sent',
+    lines: [
+        JournalLineData::debit($counterpartyPayableAccountId, '950.00000000', 'USD'),
+        JournalLineData::credit($cashAccountId, '950.00000000', 'USD'),
+    ],
+));
+```
+
+### Use Case: Customer Prepayment And Later Application
+
+Host application concept:
+
+```text
+A customer pays before the product or service is delivered.
+```
+
+When money is received:
+
+```text
+Dr Cash
+Cr Customer Deposits
+```
+
+When the deposit is applied:
+
+```text
+Dr Customer Deposits
+Cr Revenue
+```
+
+Code:
+
+```php
+$ledger->post(new JournalEntryData(
+    ledgerEntityId: $entity->id,
+    idempotencyKey: 'prepayment-received:' . $payment->uuid,
+    referenceType: 'prepayment',
+    referenceId: (string) $payment->id,
+    description: 'Customer prepayment received',
+    lines: [
+        JournalLineData::debit($cashAccountId, $payment->amount, $payment->currency),
+        JournalLineData::credit($customerDepositAccountId, $payment->amount, $payment->currency),
+    ],
+));
+
+$ledger->post(new JournalEntryData(
+    ledgerEntityId: $entity->id,
+    idempotencyKey: 'prepayment-applied:' . $application->uuid,
+    referenceType: 'prepayment_application',
+    referenceId: (string) $application->id,
+    description: 'Customer prepayment applied',
+    lines: [
+        JournalLineData::debit($customerDepositAccountId, $application->amount, $application->currency),
+        JournalLineData::credit($revenueAccountId, $application->amount, $application->currency),
+    ],
+));
+```
+
+### Use Case: Internal Reclassification
+
+Host application concept:
+
+```text
+An amount was posted to the right side of the ledger but needs to move between accounts.
+```
+
+Ledger entry:
+
+```text
+Dr Correct Account
+Cr Original Account
+```
+
+Code:
+
+```php
+$ledger->post(new JournalEntryData(
+    ledgerEntityId: $entity->id,
+    idempotencyKey: 'reclassification:' . $adjustment->uuid,
+    referenceType: 'reclassification',
+    referenceId: (string) $adjustment->id,
+    description: 'Internal account reclassification',
+    lines: [
+        JournalLineData::debit($correctAccountId, '125.00000000', 'USD'),
+        JournalLineData::credit($originalAccountId, '125.00000000', 'USD'),
+    ],
+    metadata: [
+        'approved_by' => $adjustment->approved_by,
+    ],
+));
+```
+
+Use a reversal instead when the original posted journal entry itself is wrong and should be explicitly negated.
+
 ### Use Case: Host-Specific Workflow Service
 
 Create a service in your application:
