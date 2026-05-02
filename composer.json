@@ -34,7 +34,7 @@
         "pestphp/pest-plugin-laravel": "^3.0|^4.0"
     },
     "suggest": {
-        "filament/filament": "Required only when registering the optional LedgerCorePlugin in a Filament panel."
+        "filament/filament": "Required (^5.0) when registering the optional LedgerCorePlugin in a Filament panel."
     },
     "autoload": {
         "psr-4": {

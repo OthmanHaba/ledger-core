@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace LedgerCore\Filament\Resources;
 
+use Filament\Actions\Action;
+use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
 use Filament\Forms;
-use Filament\Forms\Form;
 use Filament\Resources\Resource;
+use Filament\Schemas\Schema;
 use Filament\Tables;
 use Filament\Tables\Table;
 use LedgerCore\Filament\Resources\LedgerEntityResource\Pages;
@@ -31,9 +34,9 @@ class LedgerEntityResource extends Resource
         return config('ledger.filament.navigation_icon', 'heroicon-o-calculator');
     }
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form->schema([
+        return $schema->components([
             Forms\Components\TextInput::make('name')->required()->maxLength(255),
             Forms\Components\TextInput::make('code')->maxLength(255),
             Forms\Components\TextInput::make('type')->maxLength(255),
@@ -59,21 +62,21 @@ class LedgerEntityResource extends Resource
                 Tables\Columns\IconColumn::make('is_active')->boolean()->sortable(),
                 Tables\Columns\TextColumn::make('created_at')->dateTime()->sortable()->toggleable(),
             ])
-            ->actions([
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\Action::make('deactivate')
+            ->recordActions([
+                ViewAction::make(),
+                EditAction::make(),
+                Action::make('deactivate')
                     ->icon('heroicon-o-no-symbol')
                     ->requiresConfirmation()
                     ->visible(fn (LedgerEntity $record): bool => (bool) $record->is_active)
                     ->action(fn (LedgerEntity $record): bool => $record->forceFill(['is_active' => false])->save()),
-                Tables\Actions\Action::make('view_accounts')
+                Action::make('view_accounts')
                     ->icon('heroicon-o-list-bullet')
                     ->url(fn (LedgerEntity $record): string => LedgerAccountResource::getUrl('index', [
                         'tableFilters[ledger_entity_id][value]' => $record->getKey(),
                     ])),
             ])
-            ->bulkActions([]);
+            ->toolbarActions([]);
     }
 
     public static function getPages(): array

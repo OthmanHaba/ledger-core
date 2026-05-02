@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace LedgerCore\Filament\Resources\JournalEntryResource\RelationManagers;
 
+use Filament\Actions\ViewAction;
 use Filament\Forms;
-use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
+use Filament\Schemas\Schema;
 use Filament\Tables;
 use Filament\Tables\Table;
 
@@ -14,9 +15,9 @@ class JournalLinesRelationManager extends RelationManager
 {
     protected static string $relationship = 'lines';
 
-    public function form(Form $form): Form
+    public function form(Schema $schema): Schema
     {
-        return $form->schema([
+        return $schema->components([
             Forms\Components\Select::make('ledger_account_id')
                 ->relationship('account', 'name')
                 ->searchable()
@@ -45,9 +46,9 @@ class JournalLinesRelationManager extends RelationManager
                 Tables\Columns\TextColumn::make('memo')->limit(40),
             ])
             ->headerActions([])
-            ->actions([
-                Tables\Actions\ViewAction::make(),
+            ->recordActions([
+                ViewAction::make(),
             ])
-            ->bulkActions([]);
+            ->toolbarActions([]);
     }
 }

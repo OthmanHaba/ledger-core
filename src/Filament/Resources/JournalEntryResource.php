@@ -4,9 +4,13 @@ declare(strict_types=1);
 
 namespace LedgerCore\Filament\Resources;
 
+use Filament\Actions\Action;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
 use Filament\Forms;
-use Filament\Forms\Form;
 use Filament\Resources\Resource;
+use Filament\Schemas\Schema;
 use Filament\Tables;
 use Filament\Tables\Table;
 use LedgerCore\Enums\JournalEntryStatus;
@@ -32,9 +36,9 @@ class JournalEntryResource extends Resource
         return 'heroicon-o-document-text';
     }
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form->schema([
+        return $schema->components([
             Forms\Components\Select::make('ledger_entity_id')
                 ->relationship('entity', 'name')
                 ->required()
@@ -68,17 +72,17 @@ class JournalEntryResource extends Resource
                 Tables\Columns\TextColumn::make('status')->badge()->sortable(),
                 Tables\Columns\TextColumn::make('posted_at')->dateTime()->sortable(),
             ])
-            ->actions([
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make()
+            ->recordActions([
+                ViewAction::make(),
+                EditAction::make()
                     ->visible(fn (JournalEntry $record): bool => $record->status !== JournalEntryStatus::POSTED || config('ledger.posting.allow_posted_metadata_updates', false)),
-                Tables\Actions\Action::make('reverse')
+                Action::make('reverse')
                     ->icon('heroicon-o-arrow-uturn-left')
                     ->requiresConfirmation()
                     ->visible(fn (JournalEntry $record): bool => $record->status === JournalEntryStatus::POSTED)
                     ->action(fn (JournalEntry $record): JournalEntry => app(ReversalService::class)->reverse($record)),
             ])
-            ->bulkActions([]);
+            ->toolbarActions([]);
     }
 
     public static function getRelations(): array

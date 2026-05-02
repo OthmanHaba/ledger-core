@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace LedgerCore\Filament\Resources;
 
+use Filament\Actions\Action;
+use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
 use Filament\Forms;
-use Filament\Forms\Form;
 use Filament\Resources\Resource;
+use Filament\Schemas\Schema;
 use Filament\Tables;
 use Filament\Tables\Table;
 use LedgerCore\Enums\AccountType;
@@ -32,9 +35,9 @@ class LedgerAccountResource extends Resource
         return 'heroicon-o-book-open';
     }
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form->schema([
+        return $schema->components([
             Forms\Components\Select::make('ledger_entity_id')
                 ->relationship('entity', 'name')
                 ->required()
@@ -81,19 +84,19 @@ class LedgerAccountResource extends Resource
                 Tables\Columns\IconColumn::make('is_postable')->boolean()->sortable(),
                 Tables\Columns\IconColumn::make('is_active')->boolean()->sortable(),
             ])
-            ->actions([
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\Action::make('deactivate')
+            ->recordActions([
+                ViewAction::make(),
+                EditAction::make(),
+                Action::make('deactivate')
                     ->icon('heroicon-o-no-symbol')
                     ->requiresConfirmation()
                     ->visible(fn (LedgerAccount $record): bool => (bool) $record->is_active)
                     ->action(fn (LedgerAccount $record): bool => $record->forceFill(['is_active' => false])->save()),
-                Tables\Actions\Action::make('statement')
+                Action::make('statement')
                     ->icon('heroicon-o-document-chart-bar')
                     ->url(fn (LedgerAccount $record): string => AccountStatementPage::getUrl(['account' => $record->getKey()])),
             ])
-            ->bulkActions([]);
+            ->toolbarActions([]);
     }
 
     public static function getPages(): array
