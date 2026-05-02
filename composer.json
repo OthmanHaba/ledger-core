@@ -1,8 +1,27 @@
 {
-    "name": "vendor/ledger-core",
+    "name": "othmanhaba/ledger-core",
     "description": "Generic double-entry ledger core package for Laravel applications.",
     "type": "library",
     "license": "MIT",
+    "keywords": [
+        "laravel",
+        "ledger",
+        "accounting",
+        "double-entry",
+        "bookkeeping",
+        "filament"
+    ],
+    "homepage": "https://github.com/othmanhaba/ledger-core",
+    "authors": [
+        {
+            "name": "Othman Haba",
+            "email": "abdurahman.i.work@gmail.com"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/othmanhaba/ledger-core/issues",
+        "source": "https://github.com/othmanhaba/ledger-core"
+    },
     "require": {
         "php": "^8.3",
         "ext-bcmath": "*",

@@ -77,7 +77,7 @@ Use this package when your Laravel app needs accounting-style records without ha
 Install the package:
 
 ```bash
-composer require vendor/ledger-core
+composer require othmanhaba/ledger-core
 ```
 
 The package service provider is auto-discovered by Laravel through Composer.
