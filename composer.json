@@ -1,0 +1,52 @@
+{
+    "name": "vendor/ledger-core",
+    "description": "Generic double-entry ledger core package for Laravel applications.",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": "^8.3",
+        "ext-bcmath": "*",
+        "illuminate/database": "^11.0|^12.0",
+        "illuminate/support": "^11.0|^12.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^9.0|^10.0",
+        "pestphp/pest": "^3.0|^4.0",
+        "pestphp/pest-plugin-laravel": "^3.0|^4.0"
+    },
+    "suggest": {
+        "filament/filament": "Required only when registering the optional LedgerCorePlugin in a Filament panel."
+    },
+    "autoload": {
+        "psr-4": {
+            "LedgerCore\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "LedgerCore\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "LedgerCore\\LedgerCoreServiceProvider"
+            ],
+            "aliases": {
+                "Ledger": "LedgerCore\\Facades\\Ledger"
+            }
+        }
+    },
+    "scripts": {
+        "test": "pest",
+        "test:coverage": "pest --coverage"
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
