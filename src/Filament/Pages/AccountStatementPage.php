@@ -9,7 +9,7 @@ use LedgerCore\Services\LedgerReportService;
 
 class AccountStatementPage extends Page
 {
-    protected static string $view = 'ledger-core::filament.pages.account-statement';
+    protected string $view = 'ledger-core::filament.pages.account-statement';
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-document-chart-bar';
 

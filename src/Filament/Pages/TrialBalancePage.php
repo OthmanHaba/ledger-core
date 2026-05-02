@@ -9,7 +9,7 @@ use LedgerCore\Services\LedgerReportService;
 
 class TrialBalancePage extends Page
 {
-    protected static string $view = 'ledger-core::filament.pages.trial-balance';
+    protected string $view = 'ledger-core::filament.pages.trial-balance';
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-scale';
 
