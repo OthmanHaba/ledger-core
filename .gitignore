@@ -1,0 +1,31 @@
+# Composer
+/vendor/
+composer.lock
+
+# PHPUnit / Pest
+.phpunit.result.cache
+.phpunit.cache/
+/build/
+/coverage/
+
+# IDE & editor
+/.idea/
+/.vscode/
+/.fleet/
+/.zed/
+.phpstorm.meta.php
+_ide_helper.php
+_ide_helper_models.php
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Tooling / agents
+/.omc/
+/.claude/
+
+# Env
+.env
+.env.*
+!.env.example
